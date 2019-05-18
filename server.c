@@ -26,10 +26,9 @@ int main(int argc, char* argv[])
 	socklen_t addrlen;
 	char c;    
 	
-	//Default Values PATH = ~/ and PORT=10000
 	char PORT[6];
 	ROOT = getenv("PWD");
-	strcpy(PORT,"10000");
+	strcpy(PORT,"10000"); //PORT 10000
 
 	int slot=0;
 	
@@ -102,7 +101,6 @@ void startServer(char *port)
 	}
 }
 
-//client connection
 void respond(int n)
 {
 	char mesg[99999], *reqline[3], data_to_send[BYTES], path[99999];
@@ -131,13 +129,13 @@ void respond(int n)
 			else
 			{
 				if ( strncmp(reqline[1], "/\0", 2)==0 )
-					reqline[1] = "/index.html";        //Because if no file is specified, index.html will be opened by default (like it happens in APACHE...
+					reqline[1] = "/index.html";        //DEFAULT
 
 				strcpy(path, ROOT);
 				strcpy(&path[strlen(ROOT)], reqline[1]);
 				printf("file: %s\n", path);
 
-				if ( (fd=open(path, O_RDONLY))!=-1 )    //FILE FOUND
+				if ( (fd=open(path, O_RDONLY))!=-1 ) 
 				{
 					send(clients[n], "HTTP/1.0 200 OK\n\n", 17, 0);
 					while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
@@ -149,7 +147,7 @@ void respond(int n)
 	}
 
 	//Closing SOCKET
-	shutdown (clients[n], SHUT_RDWR);         //All further send and recieve operations are DISABLED...
+	shutdown (clients[n], SHUT_RDWR);         
 	close(clients[n]);
 	clients[n]=-1;
 }
