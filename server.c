@@ -1,32 +1,21 @@
-/*
-You can provide command line arguments like:- $./server.aout -p [port] -r [path]
-
-for ex. 
-$./server.out -p 50000 -r /home/
-to start a server at port 50000 with root directory as "/home"
-
-$./server.out -r /home/usp
-starts the server at port 10000 with ROOT as /home/usp
-
-*/
-
 #include<stdio.h>
 #include<string.h>
-#include<stdlib.h>
 #include<unistd.h>
+#include<stdlib.h>
+#include<sys/socket.h>
 #include<sys/types.h>
 #include<sys/stat.h>
-#include<sys/socket.h>
-#include<arpa/inet.h>
 #include<netdb.h>
+#include<arpa/inet.h>
 #include<signal.h>
 #include<fcntl.h>
+#include<math.h>
 
-#define CONNMAX 1000
+#define MAXCONNEC 1000
 #define BYTES 1024
 
 char *ROOT;
-int listenfd, clients[CONNMAX];
+int listenfd, clients[MAXCONNEC];
 void error(char *);
 void startServer(char *);
 void respond(int);
@@ -43,29 +32,11 @@ int main(int argc, char* argv[])
 	strcpy(PORT,"10000");
 
 	int slot=0;
-
-	//Parsing the command line arguments
-	while ((c = getopt (argc, argv, "p:r:")) != -1)
-		switch (c)
-		{
-			case 'r':
-				ROOT = malloc(strlen(optarg));
-				strcpy(ROOT,optarg);
-				break;
-			case 'p':
-				strcpy(PORT,optarg);
-				break;
-			case '?':
-				fprintf(stderr,"Wrong arguments given!!!\n");
-				exit(1);
-			default:
-				exit(1);
-		}
 	
-	printf("Server started at port no. %s%s%s with root directory as %s%s%s\n","\033[92m",PORT,"\033[0m","\033[92m",ROOT,"\033[0m");
+	printf("Server works! Port: %s%s%s | Root Directory %s%s%s\n","\033[92m",PORT,"\033[0m","\033[92m",ROOT,"\033[0m");
 	// Setting all elements to -1: signifies there is no client connected
 	int i;
-	for (i=0; i<CONNMAX; i++)
+	for (i=0; i<MAXCONNEC; i++)
 		clients[i]=-1;
 	startServer(PORT);
 
@@ -87,7 +58,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
+		while (clients[slot]!=-1) slot = (slot+1)%MAXCONNEC;
 	}
 
 	return 0;
