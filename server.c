@@ -10,6 +10,9 @@
 #include<signal.h>
 #include<fcntl.h>
 #include<math.h>
+#include<pthread.h>
+
+#include "threadpool.c"
 
 #define MAXCONNEC 1000
 #define BYTES 1024
@@ -39,17 +42,24 @@ int main(int argc, char* argv[])
 		clients[i]=-1;
 	startServer(PORT);
 
+	// Starts de pool
+	threadpool myThreadPool = create_threadpool(MAXCONNEC);
+
 	// ACCEPT connections
 	while (1)
 	{
 		addrlen = sizeof(clientaddr);
 		clients[slot] = accept (listenfd, (struct sockaddr *) &clientaddr, &addrlen);
 
+
 		// Creates a thread for each new client
 		if (clients[slot]<0)
 			error ("accept() error");
 		else
 		{ // TODO: A thread main that switch among a pool of threads available to the client.
+			
+			
+			
 			if ( fork()==0 )
 			{
 				respond(slot);
