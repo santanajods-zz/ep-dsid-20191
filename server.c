@@ -13,6 +13,7 @@
 #include<pthread.h>
 
 #include "threadpool.c"
+#include "components.c"
 
 #define MAXCONNEC 1000
 #define BYTES 1024
@@ -37,13 +38,14 @@ int main(int argc, char* argv[])
 	
 	printf("Server works! Port: %s%s%s | Root Directory %s%s%s\n","\033[92m",PORT,"\033[0m","\033[92m",ROOT,"\033[0m");
 	// Setting all elements to -1: signifies there is no client connected
-	int i;
+	int i; 
 	for (i=0; i<MAXCONNEC; i++)
 		clients[i]=-1;
 	startServer(PORT);
 
 	// Starts de pool
 	threadpool myThreadPool = create_threadpool(MAXCONNEC);
+	do_work(&myThreadPool);
 
 	// ACCEPT connections
 	while (1)
@@ -51,20 +53,22 @@ int main(int argc, char* argv[])
 		addrlen = sizeof(clientaddr);
 		clients[slot] = accept (listenfd, (struct sockaddr *) &clientaddr, &addrlen);
 
-
 		// Creates a thread for each new client
 		if (clients[slot]<0)
 			error ("accept() error");
 		else
 		{ // TODO: A thread main that switch among a pool of threads available to the client.
 			
-			
-			
-			if ( fork()==0 )
+			int (*_getComponent)(int) = &getComponent;
+			dispatch(myThreadPool, (dispatch_fn)_getComponent, &c);
+			respond(slot);
+			exit(0);
+	
+			/*if ( fork()==0 )
 			{
 				respond(slot);
 				exit(0);
-			}
+			}*/
 		}
 
 		while (clients[slot]!=-1) slot = (slot+1)%MAXCONNEC;
