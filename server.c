@@ -21,6 +21,7 @@
 char PORT[6];
 char *ROOT;
 int listenfd, clients[MAXCONNEC];
+char NUMTHREADS[2];
 void error(char *);
 void startServer(char *);
 void respond(int);
@@ -35,6 +36,7 @@ void returnComponent(int slot){
 
 int main(int argc, char* argv[])
 {
+	strcpy(NUMTHREADS, argv[2]);
 	//printf("%s", (char *)argv[1]);
 	//printf("%s", (char *)argv[2]);
 	struct sockaddr_in clientaddr;
@@ -49,7 +51,7 @@ int main(int argc, char* argv[])
 	
 	// Starts de pool
 	//printf("vai passar\n");
-	threadpool myThreadPool = create_threadpool(2);
+	threadpool myThreadPool = create_threadpool(atoi(NUMTHREADS));
 	//printf("passou\n");
 	//dispatch(myThreadPool, (dispatch_fn)_getComponent, &c);
 	//void (*_returnComponent)(int) = &returnComponent;
@@ -76,7 +78,7 @@ int main(int argc, char* argv[])
 			//int (*_getComponent)(int) = &getComponent;
 			//dispatch(myThreadPool, (dispatch_fn)_getComponent, &c);
 				void (*_returnComponent)(int) = &returnComponent;
-				dispatch(myThreadPool, (dispatch_fn)_returnComponent, (void*)slot);
+				dispatch(myThreadPool, (dispatch_fn)_returnComponent, (int*)slot);
 	
 			//if ( fork()==0 )
 			//{
@@ -159,8 +161,11 @@ void respond(int n)
 			}
 			else
 			{
+				//Route Default
 				if ( strncmp(reqline[1], "/\0", 2)==0 )
 					reqline[1] = "/client_application/index.html";        //DEFAULT
+				//if ( strncmp(reqline[1], "/\0", 2)==0 )
+					//reqline[1] = "/component_1.html";
 
 				strcpy(path, ROOT);
 				strcpy(&path[strlen(ROOT)], reqline[1]);
