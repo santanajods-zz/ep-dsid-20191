@@ -3,6 +3,7 @@
 #include<stdlib.h>
 
 int getComponent(int id){
-    char result[9] = "component";
+    char result[11] = "component\n";
+
     printf("%s", result);
 };

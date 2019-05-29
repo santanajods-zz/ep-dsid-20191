@@ -36,14 +36,15 @@ typedef struct _threadpool_st {
 
 /* This function is the work function of the thread */
 void* do_work(threadpool p) {
+	//printf("entrou\n");
 	_threadpool * pool = (_threadpool *) p;
 	work_t* cur;	//The q element
 	int k;
-
+	
 	while(1) {
 		pool->qsize = pool->qsize;
 		pthread_mutex_lock(&(pool->qlock));  //get the q lock.
-
+		//printf("listening\n");
 
 		while( pool->qsize == 0) {	//if the size is 0 then wait.  
 			if(pool->shutdown) {
@@ -52,6 +53,7 @@ void* do_work(threadpool p) {
 			}
 			//wait until the condition says its no emtpy and give up the lock. 
 			pthread_mutex_unlock(&(pool->qlock));  //get the qlock.
+			printf("waiting\n");
 			pthread_cond_wait(&(pool->q_not_empty),&(pool->qlock));
 
 			//check to see if in shutdown mode.
@@ -78,6 +80,7 @@ void* do_work(threadpool p) {
 			pthread_cond_signal(&(pool->q_empty));
 		}
 		pthread_mutex_unlock(&(pool->qlock));
+		//sleep(10);
 		(cur->routine) (cur->arg);   //actually do work.
 		free(cur);						//free the work storage.  	
 	}
