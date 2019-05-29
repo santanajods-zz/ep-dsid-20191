@@ -1,0 +1,9 @@
+#item1{
+    padding: 30px 60px;
+    text-align: center;
+}
+
+#item2{
+    display: flex;
+    justify-content: center;
+}
