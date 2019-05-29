@@ -4,12 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <!-- <script src="script.js"></script> -->
     <title>Document</title>
 </head>
 <body>
     <div id="item1">Thread ocupada...</div>
     <div id="item2">Thread ocupada...</div>
 </body>
+<script>
+    window.onload = () => {
+    getFirstItem()
+    getSecondItem()  
+}
+
+getFirstItem = async() => {
+    try{
+        const response = await fetch("http://localhost:10000")
+        console.log(response)
+        document.getElementById("item1").innerHTML = "<p>\
+        A Universidade de São Paulo (USP) é uma das quatro universidades públicas mantidas pelo governo do estado brasileiro de São Paulo, junto com a Universidade Estadual de Campinas (Unicamp), Universidade Estadual Paulista (UNESP) e a Universidade Virtual do Estado de São Paulo (Univesp). \
+        </p>"
+    }catch(err){
+        document.getElementById("item1").innerHTML = "<p>\
+        Não foi possível recuperar o conteúdo\
+        </p>"
+    }
+}
+
+getSecondItem = async() => {
+    try{
+        const response = await fetch("http://localhost:10000")
+        //console.log(response.json())
+        document.getElementById("item2").innerHTML = "<img src='https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Webysther_20170627_-_Bras%C3%A3o_USP.svg/200px-Webysther_20170627_-_Bras%C3%A3o_USP.svg.png'/>"
+    }catch(err){
+        document.getElementById("item2").innerHTML = "<p>\
+        Não foi possível recuperar o conteúdo\
+        </p>"
+    }
+}
+
+</script>
+<style>
+    #item1{
+    padding: 30px 60px;
+    text-align: center;
+    }
+
+    #item2{
+        display: flex;
+        justify-content: center;
+    }
+</style>
 </html>

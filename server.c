@@ -18,6 +18,7 @@
 #define MAXCONNEC 1000
 #define BYTES 1024
 
+char PORT[6];
 char *ROOT;
 int listenfd, clients[MAXCONNEC];
 void error(char *);
@@ -26,27 +27,29 @@ void respond(int);
 
 void returnComponent(int slot){
 	printf("return component\n");
+	sleep(5);
 	respond(slot);
-	
 	//exit(0);
 }
 
 
 int main(int argc, char* argv[])
 {
+	//printf("%s", (char *)argv[1]);
+	//printf("%s", (char *)argv[2]);
 	struct sockaddr_in clientaddr;
 	socklen_t addrlen;
 	char c;    
 	
-	char PORT[6];
+	//PORT = argv[1];
 	ROOT = getenv("PWD");
-	strcpy(PORT,"10000"); //PORT 10000
+	strcpy(PORT,argv[1]); //PORT 10000
 
 	int slot=0;
 	
 	// Starts de pool
 	//printf("vai passar\n");
-	threadpool myThreadPool = create_threadpool(1);
+	threadpool myThreadPool = create_threadpool(2);
 	//printf("passou\n");
 	//dispatch(myThreadPool, (dispatch_fn)_getComponent, &c);
 	//void (*_returnComponent)(int) = &returnComponent;
@@ -157,7 +160,7 @@ void respond(int n)
 			else
 			{
 				if ( strncmp(reqline[1], "/\0", 2)==0 )
-					reqline[1] = "/index.html";        //DEFAULT
+					reqline[1] = "/client_application/index.html";        //DEFAULT
 
 				strcpy(path, ROOT);
 				strcpy(&path[strlen(ROOT)], reqline[1]);

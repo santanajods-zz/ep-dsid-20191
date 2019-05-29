@@ -40,7 +40,6 @@ void* do_work(threadpool p) {
 	_threadpool * pool = (_threadpool *) p;
 	work_t* cur;	//The q element
 	int k;
-	
 	while(1) {
 		pool->qsize = pool->qsize;
 		pthread_mutex_lock(&(pool->qlock));  //get the q lock.
@@ -80,8 +79,7 @@ void* do_work(threadpool p) {
 			pthread_cond_signal(&(pool->q_empty));
 		}
 		pthread_mutex_unlock(&(pool->qlock));
-		//sleep(10);
-		(cur->routine) (cur->arg);   //actually do work.
+		(cur->routine) (cur->arg);  //actually do work.
 		free(cur);						//free the work storage.  	
 	}
 }
