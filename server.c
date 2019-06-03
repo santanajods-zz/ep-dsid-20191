@@ -11,6 +11,7 @@
 #include<fcntl.h>
 #include<math.h>
 #include<pthread.h>
+#include <time.h>
 
 #include "threadpool.c"
 #include "components.c"
@@ -18,27 +19,36 @@
 #define MAXCONNEC 1000
 #define BYTES 1024
 
+// for a random delay
+int returnRandom(int lower, int upper) {  
+	int num = (rand() % 
+	(upper - lower + 1)) + lower; 
+	return num; 
+}
+
 char PORT[6];
 char *ROOT;
 int listenfd, clients[MAXCONNEC];
 char NUMTHREADS[2];
+char SLEEPTIME[5];
 void error(char *);
 void startServer(char *);
 void respond(int);
 
 void returnComponent(int slot){
-	printf("return component\n");
-	sleep(5);
+	srand(time(0));
+	int secs = returnRandom(2,10);
+	if(SLEEPTIME == "delay") sleep(5);
 	respond(slot);
-	//exit(0);
 }
 
 
 int main(int argc, char* argv[])
 {
-	strcpy(NUMTHREADS, argv[2]);
-	//printf("%s", (char *)argv[1]);
-	//printf("%s", (char *)argv[2]);
+
+	strcpy(NUMTHREADS, argv[2]); //get number of threads
+	if(argv[3] == "delay") strcpy(SLEEPTIME, argv[3]); //return components with a 5sec delay 
+	
 	struct sockaddr_in clientaddr;
 	socklen_t addrlen;
 	char c;    
@@ -50,14 +60,9 @@ int main(int argc, char* argv[])
 	int slot=0;
 	
 	// Starts de pool
-	//printf("vai passar\n");
 	threadpool myThreadPool = create_threadpool(atoi(NUMTHREADS));
-	//printf("passou\n");
-	//dispatch(myThreadPool, (dispatch_fn)_getComponent, &c);
-	//void (*_returnComponent)(int) = &returnComponent;
-	//dispatch(myThreadPool, (dispatch_fn)_returnComponent, &slot);
 	
-	printf("Server works! Port: %s%s%s | Root Directory %s%s%s\n","\033[92m",PORT,"\033[0m","\033[92m",ROOT,"\033[0m");
+	printf("Server works with %s%s%s threads! Port: %s%s%s | Root Directory %s%s%s\n","\033[92m",NUMTHREADS,"\033[0m","\033[92m",PORT,"\033[0m","\033[92m",ROOT,"\033[0m");
 	// Setting all elements to -1: signifies there is no client connected
 	int i; 
 	for (i=0; i<MAXCONNEC; i++)
@@ -73,19 +78,10 @@ int main(int argc, char* argv[])
 		if (clients[slot]<0)
 			error ("accept() error");
 		else
-		{ // TODO: A thread main that switch among a pool of threads available to the client.
+		{ // A thread main that switch among a pool of threads available to the client.
 			
-			//int (*_getComponent)(int) = &getComponent;
-			//dispatch(myThreadPool, (dispatch_fn)_getComponent, &c);
 				void (*_returnComponent)(int) = &returnComponent;
 				dispatch(myThreadPool, (dispatch_fn)_returnComponent, (int*)slot);
-	
-			//if ( fork()==0 )
-			//{
-			
-				//respond(slot);	
-				//exit(0);
-			//}
 		}
 
 		while (clients[slot]!=-1) slot = (slot+1)%MAXCONNEC;
@@ -135,41 +131,39 @@ void startServer(char *port)
 
 void respond(int n)
 {
-	char mesg[99999], *reqline[3], data_to_send[BYTES], path[99999];
+	char mesg[99999], *request_line[3], data_to_send[BYTES], path[99999];
 	int rcvd, fd, bytes_read;
 
 	memset( (void*)mesg, (int)'\0', 99999 );
 
 	rcvd=recv(clients[n], mesg, 99999, 0);
-	printf("oi\n rcvd=%d", rcvd);
+	//printf("\n rcvd=%d", rcvd);
 
 	if (rcvd<0)    // receive error
-		fprintf(stderr,("recv() error\n"));
+		fprintf(stderr,("Error in recv()\n"));
 	else if (rcvd==0)    // receive socket closed
 		fprintf(stderr,"Client disconnected upexpectedly.\n");
 	else    // message received
 	{
 		printf("%s", mesg);
-		reqline[0] = strtok (mesg, " \t\n");
-		if ( strncmp(reqline[0], "GET\0", 4)==0 )
+		request_line[0] = strtok (mesg, " \t\n");
+		if ( strncmp(request_line[0], "GET\0", 4)==0 )
 		{
-			reqline[1] = strtok (NULL, " \t");
-			reqline[2] = strtok (NULL, " \t\n");
-			if ( strncmp( reqline[2], "HTTP/1.0", 8)!=0 && strncmp( reqline[2], "HTTP/1.1", 8)!=0 )
+			request_line[1] = strtok (NULL, " \t");
+			request_line[2] = strtok (NULL, " \t\n");
+			if ( strncmp( request_line[2], "HTTP/1.0", 8)!=0 && strncmp( request_line[2], "HTTP/1.1", 8)!=0 )
 			{
 				write(clients[n], "HTTP/1.0 400 Bad Request\n", 25);
 			}
 			else
 			{
 				//Route Default
-				if ( strncmp(reqline[1], "/\0", 2)==0 )
-					reqline[1] = "/client_application/index.html";        //DEFAULT
-				//if ( strncmp(reqline[1], "/\0", 2)==0 )
-					//reqline[1] = "/component_1.html";
+				if ( strncmp(request_line[1], "/\0", 2)==0 )
+					request_line[1] = "/client_application/index.html";        //DEFAULT
 
 				strcpy(path, ROOT);
-				strcpy(&path[strlen(ROOT)], reqline[1]);
-				printf("file: %s\n", path);
+				strcpy(&path[strlen(ROOT)], request_line[1]);
+				printf("file in response: %s\n", path);
 
 				if ( (fd=open(path, O_RDONLY))!=-1 ) 
 				{
